@@ -1,0 +1,24 @@
+*, *::before, *::after {
+    box-sizing: border-box;
+    user-select: none;
+}
+
+body {
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+.world {
+    overflow: hidden;
+    position: relative;
+    background-color: #444;
+}
+
+.map {
+    background-color: #888;
+    width: 640px;
+    height: 640px;
+}
