@@ -9,11 +9,11 @@ body {
     justify-content: center;
     align-items: center;
     min-height: 100vh;
-    background-color: #111;
+    background-color: #614f4b;
 }
 
 canvas {
-    border: 3px solid white;
+    border: 21px solid #4da1c4;
     margin-left: auto;
     margin-right: auto;
 }

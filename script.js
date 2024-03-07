@@ -1,40 +1,41 @@
-(function() {
+(function () {
     let canvas;
     let context2d;
-    const wallSize = 10;
+    const wallSize = 21;
     let snake = [];
-    let food = {x: 0, y: 0, color: '#5d7'};
-    let dx = 0;
-    let dy = wallSize;
+    let food = {x: 0, y: 0, color: '#ab4343'};
+    let dx = wallSize;
+    let dy = 0;
 
-    function getRandomInt(max) {
-        return Math.floor(Math.random() * max);
-    }
-
-    function drawRectRandomColor(x, y, width, height) {
-        context2d.fillStyle = `rgb(${getRandomInt(255)}, ${getRandomInt(255)}, ${getRandomInt(255)})`;
-        context2d.fillRect(x, y, width, height);
-    }
-
-    function clearCanvas() {
-        context2d.fillStyle = '#111';
-        context2d.fillRect(0, 0, canvas.width, canvas.height);
-    }
-
-    function makeSnake(length) {
+    function initSnake(length) {
+        snake = [];
         for (let i = 0; i < length; i++) {
-            let x = canvas.width / 2 + i * wallSize;
+            let x = Math.floor(canvas.width * 0.25) - i * wallSize;
             let y = canvas.height / 2;
-            snake.push({x:x, y:y});
+            snake.push({x: x, y: y});
+        }
+    }
+
+    function drawMap() {
+        const widthTiles = Math.floor(canvas.width / wallSize);
+        const heightTiles = Math.floor(canvas.height / wallSize);
+
+        for (let y = 0; y < heightTiles; y++) {
+            for (let x = 0; x < widthTiles; x++) {
+                context2d.fillStyle = (x % 2) !== (y % 2) ? '#2e3336' : '#3f4549';
+                context2d.fillRect(x * wallSize, y * wallSize, wallSize, wallSize);
+            }
         }
     }
 
     function drawSnake() {
-        snake.forEach(function(segment) {
-            context2d.strokeStyle = '#e11';
-            context2d.lineWidth = 5;
-            context2d.lineJoin = 'bevel';
-            context2d.strokeRect(segment.x, segment.y, wallSize, wallSize);
+        snake.forEach(function (segment, index) {
+            context2d.fillStyle = index === 0 ? '#c48d4d' : '#85c44d';
+            context2d.fillRect(segment.x, segment.y, wallSize, wallSize);
+
+            context2d.strokeStyle = '#111';
+            context2d.lineWidth = 2;
+            context2d.strokeRect(segment.x + 1, segment.y + 1, wallSize - 1, wallSize - 1);
         });
     }
 
@@ -44,19 +45,20 @@
     }
 
     function resetGame() {
-        snake = [];
+        dx = wallSize;
+        dy = 0;
+        initSnake(3);
         randomFood();
-        makeSnake(2);
     }
 
     function moveSnake() {
         let headX = snake[0].x + dx;
         let headY = snake[0].y + dy;
-        snake.unshift({x:headX, y:headY});
+        snake.unshift({x: headX, y: headY});
         snake.pop();
     }
 
-    function  keyDown(event) {
+    function keyDown(event) {
         switch (event.keyCode) {
             case 37: // ←
             case 65: // a
@@ -83,7 +85,7 @@
 
     function checkWallCollision() {
         const head = snake[0];
-        if(head.x > (canvas.width - wallSize) || head.x < 0 || head.y > (canvas.height - wallSize) || head.y < 0) {
+        if (head.x > (canvas.width - wallSize) || head.x < 0 || head.y > (canvas.height - wallSize) || head.y < 0) {
             resetGame();
         }
     }
@@ -122,15 +124,15 @@
 
         resetGame();
 
-        setInterval(function() {
-            clearCanvas();
+        setInterval(function () {
+            drawMap();
             moveSnake();
             checkWallCollision();
             checkSelfCollision();
             checkFoodCollision();
             drawFood();
             drawSnake();
-        }, 100);
+        }, 125);
     }
 
     window.onload = startApp;
