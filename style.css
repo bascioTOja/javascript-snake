@@ -9,16 +9,11 @@ body {
     justify-content: center;
     align-items: center;
     min-height: 100vh;
+    background-color: #111;
 }
 
-.world {
-    overflow: hidden;
-    position: relative;
-    background-color: #444;
-}
-
-.map {
-    background-color: #888;
-    width: 640px;
-    height: 640px;
+canvas {
+    border: 3px solid white;
+    margin-left: auto;
+    margin-right: auto;
 }
