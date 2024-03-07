@@ -4,6 +4,8 @@
     const wallSize = 10;
     let snake = [];
     let food = {x: 0, y: 0, color: '#5d7'};
+    let dx = 0;
+    let dy = wallSize;
 
     function getRandomInt(max) {
         return Math.floor(Math.random() * max);
@@ -37,7 +39,6 @@
     }
 
     function drawFood() {
-        console.log(food.x, food.y);
         context2d.fillStyle = food.color;
         context2d.fillRect(food.x, food.y, wallSize, wallSize);
     }
@@ -48,7 +49,7 @@
         makeSnake(2);
     }
 
-    function moveSnake(dx, dy) {
+    function moveSnake() {
         let headX = snake[0].x + dx;
         let headY = snake[0].y + dy;
         snake.unshift({x:headX, y:headY});
@@ -59,20 +60,49 @@
         switch (event.keyCode) {
             case 37: // ←
             case 65: // a
-                moveSnake(-wallSize, 0);
+                dx = -wallSize;
+                dy = 0;
                 break;
             case 38: // ↑
             case 87: // w
-                moveSnake(0, -wallSize);
+                dx = 0;
+                dy = -wallSize;
                 break;
             case 39: // →
             case 68: // d
-                moveSnake(wallSize, 0);
+                dx = wallSize;
+                dy = 0;
                 break;
             case 40: // ↓
             case 83: // s
-                moveSnake(0, wallSize);
+                dx = 0;
+                dy = wallSize;
                 break;
+        }
+    }
+
+    function checkWallCollision() {
+        const head = snake[0];
+        if(head.x > (canvas.width - wallSize) || head.x < 0 || head.y > (canvas.height - wallSize) || head.y < 0) {
+            resetGame();
+        }
+    }
+
+    function checkSelfCollision() {
+        const head = snake[0];
+        for (let i = 1; i < snake.length; i++) {
+            if (head.x === snake[i].x && head.y === snake[i].y) {
+                resetGame();
+                return;
+            }
+        }
+    }
+
+    function checkFoodCollision() {
+        const head = snake[0];
+        if (food.x === head.x && food.y === head.y) {
+            snake.push({...snake[snake.length - 1]});
+            randomFood();
         }
     }
 
@@ -94,9 +124,13 @@
 
         setInterval(function() {
             clearCanvas();
+            moveSnake();
+            checkWallCollision();
+            checkSelfCollision();
+            checkFoodCollision();
             drawFood();
             drawSnake();
-        }, 350);
+        }, 100);
     }
 
     window.onload = startApp;
