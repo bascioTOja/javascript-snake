@@ -4,8 +4,8 @@
     const wallSize = 21;
     let snake = [];
     let food = {x: 0, y: 0, color: '#ab4343'};
-    let dx = wallSize;
-    let dy = 0;
+    let delta = {x: wallSize, y: 0};
+    let moves = [];
 
     function initSnake(length) {
         snake = [];
@@ -45,16 +45,31 @@
     }
 
     function resetGame() {
-        dx = wallSize;
-        dy = 0;
+        delta = {x: wallSize, y: 0};
         initSnake(3);
         randomFood();
     }
 
+    function appendMove(newDelta) {
+        const lastMove = moves.length ? moves[moves.length - 1] : delta;
+
+        if ((lastMove.x === 0 && newDelta.x === 0) || (lastMove.y === 0 && newDelta.y === 0)) {
+            return;
+        }
+
+        moves.push(newDelta);
+    }
+
+    function nextMove() {
+        delta = moves.length ? moves.shift() : delta;
+    }
+
     function moveSnake() {
-        let headX = snake[0].x + dx;
-        let headY = snake[0].y + dy;
-        snake.unshift({x: headX, y: headY});
+        nextMove();
+        snake.unshift({
+            x: snake[0].x + delta.x,
+            y: snake[0].y + delta.y,
+        });
         snake.pop();
     }
 
@@ -62,23 +77,19 @@
         switch (event.keyCode) {
             case 37: // ←
             case 65: // a
-                dx = -wallSize;
-                dy = 0;
+                appendMove({x: -wallSize, y: 0});
                 break;
             case 38: // ↑
             case 87: // w
-                dx = 0;
-                dy = -wallSize;
+                appendMove({x: 0, y: -wallSize});
                 break;
             case 39: // →
             case 68: // d
-                dx = wallSize;
-                dy = 0;
+                appendMove({x: wallSize, y: 0});
                 break;
             case 40: // ↓
             case 83: // s
-                dx = 0;
-                dy = wallSize;
+                appendMove({x: 0, y: wallSize});
                 break;
         }
     }
@@ -123,7 +134,6 @@
         document.addEventListener('keydown', keyDown);
 
         resetGame();
-
         setInterval(function () {
             drawMap();
             moveSnake();
