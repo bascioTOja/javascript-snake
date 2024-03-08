@@ -120,12 +120,24 @@
     }
 
     function randomFood() {
-        function randV(min, max) {
-            return Math.floor((Math.random() * (max - min) + min) / wallSize) * wallSize;
+        const freeSpots = {};
+        for (let x = 0; x < canvas.width; x += wallSize) {
+            for (let y = 0; y < canvas.height; y += wallSize) {
+                freeSpots[`${x},${y}`] = {x, y};
+            }
         }
 
-        food.x = randV(20, canvas.width - 20);
-        food.y = randV(20, canvas.height - 20);
+        snake.forEach(segment => {
+            delete freeSpots[`${segment.x},${segment.y}`];
+        });
+
+        const freeSpotsList = Object.values(freeSpots);
+
+        if (freeSpotsList.length > 0) {
+            let randomLocation = freeSpotsList[Math.floor(Math.random() * freeSpotsList.length)];
+            food.x = randomLocation.x;
+            food.y = randomLocation.y;
+        }
     }
 
     function startApp() {
@@ -142,7 +154,7 @@
             checkFoodCollision();
             drawFood();
             drawSnake();
-        }, 125);
+        }, 120);
     }
 
     window.onload = startApp;
