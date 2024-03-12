@@ -1,27 +1,16 @@
-class Game {
-    static frameRate = 125;
-
-    constructor(canvas, ) {
-        this.canvas = canvas;
-        this.context = canvas.getContext('2d');
-        this.board = new Board(21, '#2e3336', '#3f4549');
-    }
-}
-
 class Board {
     static tileSize = 21;
+    static tileColors = ['#2e3336', '#3f4549'];
 
-    constructor(tileColor, secondaryTileColor) {
-        this.tileColors = [tileColor, secondaryTileColor];
+    constructor(canvas) {
+        this.widthTiles = Math.floor(canvas.width / Board.tileSize);
+        this.heightTiles = Math.floor(canvas.height / Board.tileSize);
     }
 
-    draw(context, canvas) {
-        const widthTiles = Math.floor(canvas.width / Board.tileSize);
-        const heightTiles = Math.floor(canvas.height / Board.tileSize);
-
-        for (let y = 0; y < heightTiles; y++) {
-            for (let x = 0; x < widthTiles; x++) {
-                context.fillStyle = this.tileColors[(x + y) % 2];
+    draw(context) {
+        for (let y = 0; y < this.widthTiles; y++) {
+            for (let x = 0; x < this.heightTiles; x++) {
+                context.fillStyle = Board.tileColors[(x + y) % 2];
                 context.fillRect(x * Board.tileSize, y * Board.tileSize, Board.tileSize, Board.tileSize);
             }
         }
@@ -29,7 +18,9 @@ class Board {
 }
 
 class Snake {
-    constructor(length, startPosition) {
+    constructor(length, startPosition, startDirection) {
+        this.direction = startDirection;
+        this.moves = [];
         this.body = Array.from({length}, (_, i) => (
             new SnakeBody(
                 new Vector(
@@ -39,10 +30,52 @@ class Snake {
                 i === 0
             )
         ));
+        this.head = this.getNewHead();
     }
 
-    draw(context, canvas) {
-        this.body.forEach(body => body.draw(context, canvas));
+    draw(context) {
+        this.body.forEach(body => body.draw(context));
+    }
+
+    checkSelfCollision() {
+        return this.body.slice(1).some(segment => segment.position.x === this.head.position.x && segment.position.y === this.head.position.y);
+    }
+
+    checkWallCollision(width, height) {
+        return this.head.position.x > (width - Board.tileSize) || this.head.position.x < 0 || this.head.position.y > (height - Board.tileSize) || this.head.position.y < 0;
+    }
+
+    checkFoodCollision(food) {
+        return food.position.x === this.head.position.x && food.position.y === this.head.position.y;
+    }
+
+    appendMove(newDirection) {
+        const lastMove = this.moves.length ? this.moves[this.moves.length - 1] : this.direction;
+        if ((lastMove.x === 0 && newDirection.x === 0) || (lastMove.y === 0 && newDirection.y === 0)) {
+            return;
+        }
+        this.moves.push(new Vector(newDirection.x, newDirection.y));
+    }
+
+    updateDirection() {
+        if (this.moves.length > 0) {
+            this.direction = this.moves.shift();
+        }
+    }
+
+    appendHead(newHead) {
+        this.head.changeToBody();
+        this.body.unshift(newHead);
+        this.updateHead();
+    }
+
+
+    getNewHead(){
+        return this.body[0];
+    }
+
+    updateHead(){
+        this.head = this.getNewHead();
     }
 }
 
@@ -50,7 +83,7 @@ class SnakeBody {
     static headColor = '#c48d4d';
     static bodyColor = '#85c44d';
 
-    constructor(position, is_head = false) {
+    constructor(position, is_head = true) {
         this.position = position;
         this.is_head = is_head;
     }
@@ -59,12 +92,17 @@ class SnakeBody {
         this.is_head = false;
     }
 
-    draw(context, canvas) {
-        this.position.drawRect(context, this.is_head ? SnakeBody.headColor : SnakeBody.bodyColor);
+    draw(context) {
+        context.fillStyle = this.is_head ? SnakeBody.headColor : SnakeBody.bodyColor;
+        context.fillRect(this.position.x, this.position.y, Board.tileSize, Board.tileSize);
+
+        context.strokeStyle = '#111';
+        context.lineWidth = 2;
+        context.strokeRect(this.position.x + 1, this.position.y + 1, Board.tileSize - 1, Board.tileSize - 1);
     }
 }
 
-class Apple {
+class Food {
     static color = '#ab4343';
 
     constructor(position) {
@@ -72,7 +110,7 @@ class Apple {
     }
 
     draw(context, canvas) {
-        this.position.drawRect(context, Apple.color);
+        this.position.drawRect(context, Food.color);
     }
 }
 
@@ -86,130 +124,76 @@ class Vector {
         context.fillStyle = color;
         context.fillRect(this.x, this.y, Board.tileSize, Board.tileSize);
     }
+
+    add(vector) {
+        return new Vector(
+            this.x + vector.x,
+            this.y + vector.y
+        );
+    }
 }
 
+const directionMap = {
+    'left': new Vector(-Board.tileSize, 0),
+    'up': new Vector(0, -Board.tileSize),
+    'right': new Vector(Board.tileSize, 0),
+    'down': new Vector(0, Board.tileSize),
+};
 
 (function () {
     const canvas = document.getElementById('canvas');
     const context = canvas.getContext('2d');
-    const wallSize = 21;
-    const snakeColor = {head: '#c48d4d', body: '#85c44d'};
-    const mapColors = ['#2e3336', '#3f4549'];
-    const foodColor = '#ab4343';
     const frameRate = 125;
-    const directionMap = {
-        'left': {x: -wallSize, y: 0},
-        'up': {x: 0, y: -wallSize},
-        'right': {x: wallSize, y: 0},
-        'down': {x: 0, y: wallSize},
-    };
+    const board = new Board(canvas);
 
-    let snake = [];
-    let food = {};
-    let delta = {};
-    let moves = [];
-
+    let snake = newSnake(3);
+    let food = new Food(new Vector(0, 0));
 
     function resetGame() {
-        delta = directionMap.right;
-        snake = initSnake(3);
+        snake = newSnake(3);
         placeRandomFood();
     }
 
-    function initSnake(length) {
-        const xStart = Math.floor(canvas.width * 0.25);
-        const yCenter = Math.floor(canvas.height / 2);
-
-        return Array.from({length}, (_, i) => ({
-            x: xStart - i * wallSize,
-            y: yCenter
-        }));
-    }
-
-    function drawMap() {
-        const widthTiles = Math.floor(canvas.width / wallSize);
-        const heightTiles = Math.floor(canvas.height / wallSize);
-
-        for (let y = 0; y < heightTiles; y++) {
-            for (let x = 0; x < widthTiles; x++) {
-                context.fillStyle = mapColors[(x + y) % 2];
-                context.fillRect(x * wallSize, y * wallSize, wallSize, wallSize);
-            }
-        }
-    }
-
-    function drawSnake() {
-        snake.forEach(function (segment, index) {
-            context.fillStyle = index === 0 ? snakeColor.head : snakeColor.body;
-            context.fillRect(segment.x, segment.y, wallSize, wallSize);
-
-            context.strokeStyle = '#111';
-            context.lineWidth = 2;
-            context.strokeRect(segment.x + 1, segment.y + 1, wallSize - 1, wallSize - 1);
-        });
-    }
-
-    function drawFood() {
-        context.fillStyle = foodColor;
-        context.fillRect(food.x, food.y, wallSize, wallSize);
-    }
-
-    function appendMove(newDelta) {
-        const lastMove = moves.length ? moves[moves.length - 1] : delta;
-        if ((lastMove.x === 0 && newDelta.x === 0) || (lastMove.y === 0 && newDelta.y === 0)) {
-            return;
-        }
-        moves.push(newDelta);
-    }
-
-    function updateDirection() {
-        if (moves.length > 0) {
-            delta = moves.shift();
-        }
+    function newSnake(length) {
+        return new Snake(
+            length,
+            new Vector(
+                Math.floor(canvas.width * 0.25),
+                Math.floor(canvas.height / 2),
+            ),
+            directionMap.right,
+        );
     }
 
     function moveSnake() {
-        updateDirection();
-        const head = snake[0];
-        const newHead = {
-            x: head.x + delta.x,
-            y: head.y + delta.y,
-        };
-        snake.unshift(newHead);
-        if (checkFoodCollision(newHead)) {
+        snake.updateDirection();
+
+        const newHead = new SnakeBody(snake.head.position.add(snake.direction));
+        snake.appendHead(newHead);
+
+        if (snake.checkFoodCollision(food)) {
             placeRandomFood();
         } else {
-            snake.pop();
+            snake.body.pop();
         }
-    }
-
-    function checkWallCollision(head) {
-        return head.x > (canvas.width - wallSize) || head.x < 0 || head.y > (canvas.height - wallSize) || head.y < 0;
-    }
-
-    function checkSelfCollision(head) {
-        return snake.slice(1).some(segment => segment.x === head.x && segment.y === head.y);
-    }
-
-    function checkFoodCollision(head) {
-        return food.x === head.x && food.y === head.y;
     }
 
     function placeRandomFood() {
         const freeSpots = {};
-        for (let x = 0; x < canvas.width; x += wallSize) {
-            for (let y = 0; y < canvas.height; y += wallSize) {
+        for (let x = 0; x < canvas.width; x += Board.tileSize) {
+            for (let y = 0; y < canvas.height; y += Board.tileSize) {
                 freeSpots[`${x},${y}`] = {x, y};
             }
         }
 
-        snake.forEach(segment => {
-            delete freeSpots[`${segment.x},${segment.y}`];
+        snake.body.forEach(segment => {
+            delete freeSpots[`${segment.position.x},${segment.position.y}`];
         });
 
         const freeSpotsList = Object.values(freeSpots);
         if (freeSpotsList.length) {
-            food = freeSpotsList[Math.floor(Math.random() * freeSpotsList.length)];
+            const freeSpot = freeSpotsList[Math.floor(Math.random() * freeSpotsList.length)];
+            food = new Food(new Vector(freeSpot.x, freeSpot.y));
         }
     }
 
@@ -217,32 +201,31 @@ class Vector {
         switch (event.keyCode) {
             case 37: // ←
             case 65: // a
-                appendMove(directionMap.left);
+                snake.appendMove(directionMap.left);
                 break;
             case 38: // ↑
             case 87: // w
-                appendMove(directionMap.up);
+                snake.appendMove(directionMap.up);
                 break;
             case 39: // →
             case 68: // d
-                appendMove(directionMap.right);
+                snake.appendMove(directionMap.right);
                 break;
             case 40: // ↓
             case 83: // s
-                appendMove(directionMap.down);
+                snake.appendMove(directionMap.down);
                 break;
         }
     }
 
     function checkCollisions() {
-        const head = snake[0];
-        return checkWallCollision(head) || checkSelfCollision(head);
+        return snake.checkWallCollision(canvas.width, canvas.height) || snake.checkSelfCollision();
     }
 
     function renderScene() {
-        drawMap();
-        drawFood();
-        drawSnake();
+        board.draw(context);
+        food.draw(context);
+        snake.draw(context);
     }
 
     function processGameLogic() {
