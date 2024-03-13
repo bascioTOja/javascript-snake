@@ -1,0 +1,22 @@
+{
+  "name": "javascript-snake",
+  "version": "1.0.0",
+  "description": "Snake in javascript",
+  "main": "script.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bascioTOja/javascript-snake.git"
+  },
+  "keywords": [
+    "snake"
+  ],
+  "author": "bascio",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/bascioTOja/javascript-snake/issues"
+  },
+  "homepage": "https://github.com/bascioTOja/javascript-snake#readme"
+}
