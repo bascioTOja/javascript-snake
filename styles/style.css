@@ -12,6 +12,6 @@ body {
     background-color: #614f4b;
 }
 
-canvas {
+#canvas {
     border: 21px solid #4da1c4;
 }
