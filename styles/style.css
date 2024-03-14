@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Madimi+One&display=swap');
+
 *, *::before, *::after {
     user-select: none;
 }
@@ -14,4 +16,18 @@ body {
 
 #canvas {
     border: 21px solid #4da1c4;
+}
+
+.score-wrapper {
+    text-align: center;
+}
+
+.score {
+    font-family: "Madimi One", sans-serif;
+    font-weight: 800;
+    font-style: normal;
+    font-size: 48px;
+    color: #FEF3E8;
+    margin: 0;
+    padding: 0;
 }

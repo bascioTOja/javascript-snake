@@ -4,6 +4,7 @@ import {Food} from "./food";
 import {Snake} from "./snake";
 import {SnakeBody} from "./snake_body";
 import {directionMap} from "./directions_map";
+import {Score} from "./score";
 
 
 
@@ -12,18 +13,25 @@ import {directionMap} from "./directions_map";
     const context = canvas.getContext('2d');
     const frameRate = 125;
     const board = new Board(canvas);
+    const snakeStartLength = 3;
 
-    let snake = newSnake(3);
+    let snake = newSnake();
     let food = new Food(new Vector(0, 0));
+    let score = newScore(snake.body.length);
 
     function resetGame() {
-        snake = newSnake(3);
+        snake = newSnake();
+        score = newScore(snake.body.length);
         placeRandomFood();
     }
 
-    function newSnake(length) {
+    function newScore(score) {
+        return new Score(document.getElementById('score'), score);
+    }
+
+    function newSnake() {
         return new Snake(
-            length,
+            snakeStartLength,
             new Vector(
                 Math.floor(canvas.width * 0.25),
                 Math.floor(canvas.height / 2),
@@ -40,6 +48,7 @@ import {directionMap} from "./directions_map";
 
         if (snake.checkFoodCollision(food)) {
             placeRandomFood();
+            score.increase();
         } else {
             snake.body.pop();
         }
