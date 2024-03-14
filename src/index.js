@@ -5,6 +5,7 @@ import {Snake} from "./snake";
 import {SnakeBody} from "./snake_body";
 import {directionMap} from "./directions_map";
 import {Score} from "./score";
+import JSConfetti from 'js-confetti';
 
 
 
@@ -14,6 +15,7 @@ import {Score} from "./score";
     const frameRate = 125;
     const board = new Board(canvas);
     const snakeStartLength = 3;
+    const jsConfetti = new JSConfetti();
 
     let snake = newSnake();
     let food = new Food(new Vector(0, 0));
@@ -23,6 +25,23 @@ import {Score} from "./score";
         snake = newSnake();
         score = newScore(snake.body.length);
         placeRandomFood();
+    }
+
+    function deadSnake() {
+        jsConfetti.addConfetti({
+            emojis: ['😭', '😵', '😵‍💫'],
+            confettiNumber: 14,
+        });
+        resetGame();
+    }
+
+    function getPoint() {
+        score.increase();
+        if (score.score % 5 === 0) {
+            jsConfetti.addConfetti({
+                confettiNumber: score.score*2,
+            });
+        }
     }
 
     function newScore(score) {
@@ -48,7 +67,7 @@ import {Score} from "./score";
 
         if (snake.checkFoodCollision(food)) {
             placeRandomFood();
-            score.increase();
+            getPoint();
         } else {
             snake.body.pop();
         }
@@ -107,7 +126,7 @@ import {Score} from "./score";
     function processGameLogic() {
         moveSnake();
         if (checkCollisions()) {
-            resetGame();
+            deadSnake();
         }
     }
 
