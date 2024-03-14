@@ -36,12 +36,17 @@ import JSConfetti from 'js-confetti';
     }
 
     function getPoint() {
-        score.increase();
+        snake.grow(food.worth);
+        score.increase(food.worth);
         if (score.score % 5 === 0) {
             jsConfetti.addConfetti({
                 confettiNumber: score.score*2,
             });
         }
+        if(food.hasConfetti) {
+            food.playConfetti(jsConfetti);
+        }
+        placeRandomFood();
     }
 
     function newScore(score) {
@@ -60,17 +65,10 @@ import JSConfetti from 'js-confetti';
     }
 
     function moveSnake() {
-        snake.updateDirection();
-
-        const newHead = new SnakeBody(snake.head.position.add(snake.direction));
-        snake.appendHead(newHead);
-
         if (snake.checkFoodCollision(food)) {
-            placeRandomFood();
             getPoint();
-        } else {
-            snake.body.pop();
         }
+        snake.move();
     }
 
     function placeRandomFood() {

@@ -62,4 +62,18 @@ export class Snake {
     updateHead(){
         this.head = this.getNewHead();
     }
+
+    move() {
+        this.updateDirection();
+        const newHead = new SnakeBody(this.head.position.add(this.direction));
+        this.appendHead(newHead);
+        this.body.pop();
+    }
+
+    grow(amount = 1) {
+        let lastBody = this.body[this.body.length - 1];
+        for (let i = 0; i < amount; i++) {
+            this.body.push(new SnakeBody(new Vector(lastBody.position.x, lastBody.position.y), false));
+        }
+    }
 }

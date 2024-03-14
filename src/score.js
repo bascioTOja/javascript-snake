@@ -9,8 +9,8 @@ export class Score {
         this.scoreboard.textContent = this.score;
     }
 
-    increase() {
-        this.score++;
+    increase(amount = 1) {
+        this.score += amount;
         this.draw();
     }
 }
