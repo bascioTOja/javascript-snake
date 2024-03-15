@@ -13,4 +13,9 @@ export class Score {
         this.score += amount;
         this.draw();
     }
+
+    set(score) {
+        this.score = score;
+        this.draw();
+    }
 }

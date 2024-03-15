@@ -20,7 +20,8 @@ body {
 
 .score-wrapper {
     text-align: center;
-}
+    position: relative;
+ }
 
 .score {
     font-family: "Madimi One", sans-serif;
@@ -30,4 +31,20 @@ body {
     color: #FEF3E8;
     margin: 0;
     padding: 0;
+}
+
+.best-score-wrapper {
+    display: none;
+    position: absolute;
+    right: 0;
+    bottom: 7px;
+    font-family: "Madimi One", sans-serif;
+    font-weight: 800;
+    font-style: normal;
+    font-size: 24px;
+    color: #cbc2b9;
+}
+
+.best-score-wrapper.is-visible {
+    display: block;
 }

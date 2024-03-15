@@ -2,7 +2,6 @@ import {Board} from './board.js';
 import {Vector} from "./Vector";
 import {Food} from "./food";
 import {Snake} from "./snake";
-import {SnakeBody} from "./snake_body";
 import {directionMap} from "./directions_map";
 import {Score} from "./score";
 import JSConfetti from 'js-confetti';
@@ -20,6 +19,10 @@ import JSConfetti from 'js-confetti';
     let snake = newSnake();
     let food = new Food(new Vector(0, 0));
     let score = newScore(snake.body.length);
+    let bestScore = new Score(document.getElementById('best-score'), localStorage.getItem("bestScore") ?? score.score);
+    if (bestScore.score > score.score) {
+        document.getElementsByClassName('best-score-wrapper')[0].classList.add('is-visible');
+    }
 
     function resetGame() {
         snake = newSnake();
@@ -32,6 +35,11 @@ import JSConfetti from 'js-confetti';
             emojis: ['😭', '😵', '😵‍💫'],
             confettiNumber: 14,
         });
+        if(score.score > bestScore.score) {
+            bestScore.set(score.score);
+            localStorage.setItem('bestScore', bestScore.score);
+            document.getElementsByClassName('best-score-wrapper')[0].classList.add('is-visible');
+        }
         resetGame();
     }
 
