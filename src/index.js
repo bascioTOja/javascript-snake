@@ -1,5 +1,5 @@
 import {Board} from './board.js';
-import {Vector} from "./Vector";
+import {Vector} from "./vector";
 import {Food} from "./food";
 import {Snake} from "./snake";
 import {directionMap} from "./directions_map";

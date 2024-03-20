@@ -1,4 +1,4 @@
-import {Vector} from "./Vector";
+import {Vector} from "./vector";
 import {Board} from "./board";
 
 export const directionMap = {

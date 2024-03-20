@@ -1,6 +1,6 @@
 import {Board} from "./board";
 import {SnakeBody} from "./snake_body.js";
-import {Vector} from "./Vector";
+import {Vector} from "./vector";
 
 export class Snake {
     constructor(length, startPosition, startDirection) {
